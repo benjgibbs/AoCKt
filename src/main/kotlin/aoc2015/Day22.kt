@@ -197,6 +197,7 @@ fun playerTurn(state: State, bossDamage: Int, playerPenalty: Int): Result {
         Result(state = results.flatMap { it.state })
     }
 }
+
 private fun run(
     bossHitPoints: Int,
     playerHitPoints: Int,

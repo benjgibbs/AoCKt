@@ -1,7 +1,6 @@
 package aoc2020
 
 import utils.readAllLines
-import java.lang.StringBuilder
 
 fun main() {
     val lines = readAllLines(2020,6)
@@ -18,7 +17,7 @@ fun main() {
         }
     }
     count += letters.size
-    println("Part 1: ${count}")
+    println("Part 1: $count")
 
 
     val sets = mutableListOf<Set<Char>>()
