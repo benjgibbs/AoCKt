@@ -34,3 +34,13 @@ fun readAllLines(year: Int, day:Int) : List<String> {
 
     return Files.readAllLines(path)
 }
+
+fun ints(s : String) : List<Int> {
+    val intRegex = """-?\d+""".toRegex()
+    return intRegex.findAll(s).map { it.groupValues[0].toInt() }.toList()
+}
+
+fun reals(s: String): List<Double> {
+    val realRegex = """-?\d+(.\d+)""".toRegex()
+    return realRegex.findAll(s).map { it.groupValues[0].toDouble() }.toList()
+}
