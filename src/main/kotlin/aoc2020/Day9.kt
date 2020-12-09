@@ -1,7 +1,6 @@
 package aoc2020
 
 import utils.readAllLines
-import java.lang.IllegalStateException
 import java.lang.Long.min
 import java.util.*
 import kotlin.math.max
@@ -15,22 +14,22 @@ fun main(){
 }
 
 private fun part2(input: List<Long>, part1: Long) : Long {
-    for (a in 0 until (input.size - 1)) {
-        for (b in a + 1 until input.size) {
-            var sum = 0L
-            var min = Long.MAX_VALUE
-            var max = Long.MIN_VALUE
-            for (c in a..b) {
-                sum += input[c]
-                min = min(min, input[c])
-                max = max(max, input[c])
-            }
-            if (sum == part1) {
-                return min+max
-            }
-        }
+
+    var start = 0
+    var end = 0
+    var sum = 0L
+
+    while (sum != part1 || (end-start) < 2) {
+        while(sum < part1) sum += input[end++]
+        while(sum > part1) sum -= input[start++]
     }
-    throw IllegalStateException("Result not found")
+    var min = Long.MAX_VALUE
+    var max = Long.MIN_VALUE
+    for (i in start until end){
+        min = min(min, input[i])
+        max = max(max, input[i])
+    }
+    return min+max
 }
 
 private fun part1(input: List<Long>, q: LinkedList<Long>): Long {
