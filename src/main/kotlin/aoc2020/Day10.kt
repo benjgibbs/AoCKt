@@ -5,7 +5,7 @@ import java.lang.IllegalStateException
 
 fun count(adaptors: List<Int>): Long {
 
-    var cache = HashMap<Int, Long>()
+    val cache = HashMap<Int, Long>()
     val list = adaptors.sortedDescending().plus(0)
 
     cache[list.first()] = 1
@@ -24,10 +24,10 @@ fun count(adaptors: List<Int>): Long {
 }
 
 fun main() {
-    val jolts = readAllLines(2020,10).map{it.toInt()}
-    //val jolts = test1.split("\n").map { it.toInt() }
-    //val jolts = test2.split("\n").map { it.toInt() }
-    val sorted = jolts.sorted()
+    val jolts = listOf(readAllLines(2020,10).map{it.toInt()},
+            test1.split("\n").map { it.toInt() },
+            test2.split("\n").map { it.toInt() })
+    val sorted = jolts[0].sorted()
 
     println("part1: ${part1(sorted)}")
     println("part2: ${count(sorted)}")
