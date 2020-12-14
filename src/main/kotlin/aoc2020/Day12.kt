@@ -35,7 +35,6 @@ fun main() {
     println("Part1: ${abs(part1.x) + abs(part1.y)}")
 
     val part2 = lines.fold(ShipAndPoint(0, 0, 10, -1)) { acc, l ->
-        println(acc)
         val i = l[0]
         val arg = l.substring(1).toInt()
         when (i) {

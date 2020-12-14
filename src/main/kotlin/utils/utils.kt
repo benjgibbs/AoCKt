@@ -35,9 +35,9 @@ fun readAllLines(year: Int, day:Int) : List<String> {
     return Files.readAllLines(path)
 }
 
-fun ints(s : String) : List<Int> {
+fun ints(s : String) : List<Long> {
     val intRegex = """-?\d+""".toRegex()
-    return intRegex.findAll(s).map { it.groupValues[0].toInt() }.toList()
+    return intRegex.findAll(s).map { it.groupValues[0].toLong() }.toList()
 }
 
 fun reals(s: String): List<Double> {
