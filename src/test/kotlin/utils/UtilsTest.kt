@@ -7,20 +7,20 @@ internal class UtilsTest {
 
     @Test
     fun numbersShouldBeExtracted() {
-        val ints = ints("12 3456, 789")
-        assertEquals(listOf(12, 3456, 789), ints)
+        val longs = longs("12 3456, 789")
+        assertEquals(listOf(12L, 3456L, 789L), longs)
     }
 
     @Test
     fun negativeNumbersAreFine() {
-        val ints = ints("12 -3456, 789")
-        assertEquals(listOf(12, -3456, 789), ints)
+        val longs = longs("12 -3456, 789")
+        assertEquals(listOf(12L, -3456L, 789L), longs)
     }
 
     @Test
     fun doublesAreProblematic() {
-        val ints = ints("12.3 3456, 789")
-        assertEquals(listOf(12, 3, 3456, 789), ints)
+        val longs = longs("12.3 3456, 789")
+        assertEquals(listOf(12L, 3L, 3456L, 789L), longs)
     }
 
     @Test
@@ -29,7 +29,7 @@ internal class UtilsTest {
             |these are the 100 users with the highest total score. Getting a star 
             |first is worth 100 points, second is 99, and so on down to 1 point 
             |at 100th place.""".trimMargin()
-        assertEquals(listOf(2020, 100, 100, 99, 1, 100), ints(input))
+        assertEquals(listOf(2020L, 100L, 100L, 99L, 1L, 100L), longs(input))
     }
 
     @Test

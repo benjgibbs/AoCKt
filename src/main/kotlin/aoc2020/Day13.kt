@@ -1,11 +1,11 @@
 package aoc2020
 
-import utils.ints
+import utils.longs
 import utils.readAllLines
 
 fun main() {
     val lines = readAllLines(2020, 13)
-    var ints = ints(lines.joinToString(","))
+    var ints = longs(lines.joinToString(","))
     //ints = listOf(939, 7, 13, 59, 31, 19)
     val earliest = ints[0]
     var minWait = Int.MAX_VALUE

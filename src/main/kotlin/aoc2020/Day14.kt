@@ -1,6 +1,6 @@
 package aoc2020
 
-import utils.ints
+import utils.longs
 import utils.readAllLines
 import java.lang.Long.parseLong
 import java.lang.Long.toBinaryString
@@ -13,11 +13,7 @@ fun applyMask(mask: String, num: Long): Long {
     val buffer = MutableList(BITS) { '0' }
     for (i in 0 until BITS) {
         val bit2 = mask[i]
-        buffer[i] = if (bit2 == 'X') {
-            intString[i]
-        } else {
-            bit2
-        }
+        buffer[i] = if (bit2 == 'X') intString[i] else bit2
     }
     return parseLong(buffer.joinToString(""), 2)
 }
@@ -31,21 +27,20 @@ fun permute(addr: String): List<String> {
     }
     val result = mutableListOf<String>()
     val subs = permute(addr.drop(1))
-    return when (addr[0]) {
+    when (addr[0]) {
         'X' -> {
             for (s in subs) {
                 result.add("1$s")
                 result.add("0$s")
             }
-            result
         }
         else -> {
             for (s in subs) {
                 result.add("${addr[0]}$s")
             }
-            result
         }
     }
+    return result
 }
 
 fun generateAddresses(mask: String, addr: Long): List<Long> {
@@ -80,7 +75,7 @@ fun main() {
         if (line.startsWith("mask")) {
             mask = line.replace("mask = ", "").trim()
         } else {
-            val addressVal = ints(line)
+            val addressVal = longs(line)
             memory[addressVal[0]] = applyMask(mask, addressVal[1])
             for (addr in generateAddresses(mask, addressVal[0])) {
                 memory2[addr] = addressVal[1]
