@@ -1,43 +1,39 @@
 package aoc2020
 
+import utils.crt
 import utils.longs
 import utils.readAllLines
+import java.lang.Math.floorMod
 
 fun main() {
     val lines = readAllLines(2020, 13)
-    var ints = longs(lines.joinToString(","))
-    //ints = listOf(939, 7, 13, 59, 31, 19)
+    val ints = longs(lines.joinToString(","))
     val earliest = ints[0]
     var minWait = Int.MAX_VALUE
     var id = Int.MAX_VALUE
     for (i in ints.drop(1)) {
         var depart = i
         while (depart < earliest) {
-            depart+= i
+            depart += i
         }
-        val wait = ( depart - earliest)
+        val wait = (depart - earliest)
         if (wait < minWait) {
-            println("id: $i, wait: $wait")
             minWait = wait.toInt()
             id = i.toInt()
         }
     }
-    //  not 19
     println("Part1: ${id * minWait}")
 
-    var input2 = lines[1].split(",")
-    input2 = "7,13,x,x,59,x,31,1".split(",")
-    val facts = mutableListOf<Int>()
-    for (i in 0 until input2.size) {
-        if (input2[i] != "x") {
-            facts.add(i+ input2[i].toInt())
+    data class Bus(val depart: Long, val id: Long) {
+        fun getWait(): Long {
+            return floorMod(this.id - this.depart, this.id)
         }
     }
-    println("facts: $facts")
-    println("Part2: ${facts.fold(1){a,b -> a*b}}")
 
-    //to low: 626302976
+    val busses = lines[1].split(",").withIndex().filter { it.value != "x" }
+        .map { Bus(it.index.toLong(), it.value.toLong()) }
 
-    var busses = (0..input2.size).zip(input2).filter { it.second != "x" }
+    println("Part2: ${crt(busses.map { it.getWait() }, busses.map { it.id })}")
 
 }
+

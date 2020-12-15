@@ -38,4 +38,18 @@ internal class UtilsTest {
         assertEquals(listOf(12.3, 3456.0, 789.0), doubles)
     }
 
+    @Test
+    fun euclidFindsGCD() {
+        assertEquals(3, euclid(3,9)[0])
+        assertEquals(3, euclid(3,12)[0])
+        assertEquals(3, euclid(6,9)[0])
+        assertEquals(14, euclid(345688,245994)[0])
+    }
+
+    @Test
+    fun checkCRT() {
+        assertEquals(53, crt(listOf(2L, 5L, -3L), listOf(3L, 4L, 7L)))
+        assertEquals(158, crt(listOf(3L, 2L, 4L), listOf(5L, 6L, 7L)))
+    }
+
 }

@@ -1,5 +1,7 @@
 package utils
 
+import java.lang.Long.max
+import java.lang.Long.min
 import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -48,4 +50,41 @@ fun ints(s : String) : List<Int> {
 fun reals(s: String): List<Double> {
     val realRegex = """-?\d+(.\d+)""".toRegex()
     return realRegex.findAll(s).map { it.groupValues[0].toDouble() }.toList()
+}
+
+fun euclid(x: Long, y: Long) : List<Long> {
+
+    var a = max(x,y)
+    var b = min(x,y)
+
+    var q1 = a/b
+    var r1 = a%b
+    while (r1 != 0L){
+        a = b
+        b = r1
+        q1 = a/b
+        r1 = a%b
+    }
+    return listOf(b, q1, r1)
+}
+
+fun crt(ais: List<Long>, pis: List<Long>): Long {
+    fun u(factor: Long, prime: Long) : Long {
+        var result = 0L
+        while ((factor * result) % prime != 1L ){
+            result++
+        }
+        return result
+    }
+
+    val N = pis.fold(1L) { acc, i -> acc * i }
+    var result = 0L
+    for (i in ais.indices) {
+        val ai = ais[i]
+        val pi = pis[i]
+        val ni = N/pi
+        val ui = u(ni,pi)
+        result += (ai * ni * ui)
+    }
+    return result % N
 }
