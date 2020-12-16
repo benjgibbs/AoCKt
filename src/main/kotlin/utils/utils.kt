@@ -69,21 +69,19 @@ fun euclid(x: Long, y: Long) : List<Long> {
 }
 
 fun crt(ais: List<Long>, pis: List<Long>): Long {
-    fun u(factor: Long, prime: Long) : Long {
-        var result = 0L
-        while ((factor * result) % prime != 1L ){
-            result++
-        }
-        return result
-    }
-
     val N = pis.fold(1L) { acc, i -> acc * i }
     var result = 0L
+    // x = Sum{(ai)(ni)(ui)} i in 1..n
+    //https://www.dave4math.com/mathematics/chinese-remainder-theorem/
     for (i in ais.indices) {
         val ai = ais[i]
         val pi = pis[i]
         val ni = N/pi
-        val ui = u(ni,pi)
+        var ui = 0L
+        //ni*ui = 1 (mod pi)
+        while((ni * ui) % pi != 1L) {
+            ui++
+        }
         result += (ai * ni * ui)
     }
     return result % N

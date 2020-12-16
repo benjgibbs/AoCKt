@@ -3,6 +3,7 @@ package aoc2020
 import utils.ints
 
 fun check(starting: List<Int>, turns: Int): Int {
+    val start = System.currentTimeMillis()
     val cache = mutableMapOf<Int, Int>()
     var spoken = 0
     for (t in 1..turns) {
@@ -18,6 +19,7 @@ fun check(starting: List<Int>, turns: Int): Int {
         }
         cache[last] = t - 1
     }
+    println("Took: ${System.currentTimeMillis() - start}")
     return spoken
 }
 
