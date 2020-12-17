@@ -8,8 +8,8 @@ const val ACTIVE = '#'
 
 fun main() {
     val input = readAllLines(2020, 17).map { it.toList() }
-    println("Part 1: ${part1(input)}");
-    println("Part 2: ${part2(input)}");
+    println("Part 1: ${part1(input)}")
+    println("Part 2: ${part2(input)}")
 }
 
 data class Point(val w: Int, val x: Int, val y: Int, val z: Int)
@@ -94,7 +94,7 @@ private fun part1(input: List<List<Char>>): Int {
 }
 
 private fun initialActives(input: List<List<Char>>): MutableSet<Point> {
-    var active = mutableSetOf<Point>()
+    val active = mutableSetOf<Point>()
     for (y in input.indices) {
         for (x in input[y].indices) {
             if (input[y][x] == ACTIVE) {
