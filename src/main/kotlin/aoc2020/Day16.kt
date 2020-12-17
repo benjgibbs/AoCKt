@@ -50,8 +50,8 @@ fun main() {
 
     for (c in 0 until 20) {
         val check = fieldValid[c]
-        val possible = mutableSetOf<Int>()
-        possible.addAll(0..19)
+
+        val possible = (0..19).toMutableSet()
         for (t in validTickets) {
             for ((i, f) in t.withIndex()) {
                 if (!check.contains(f)) {
@@ -79,9 +79,9 @@ fun main() {
             }
         }
     }
-    var product = 1L
-    for (i in 0..5) {
-        product *= myTicket[sureThings[i]!!]
-    }
-    println("Part2: $product")
+    val part2 = (0..5)
+        .map { myTicket[sureThings[it]!!] }
+        .fold(1L) { acc, x -> acc * x }
+
+    println("Part2: $part2")
 }
