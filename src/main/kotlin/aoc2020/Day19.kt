@@ -1,8 +1,6 @@
 package aoc2020
 
 import utils.readAllLines
-import java.lang.IllegalStateException
-
 
 fun expand(
     id: Int,
@@ -45,19 +43,17 @@ fun expand(
 }
 
 fun main() {
-    val cache = mutableMapOf<Int, List<String>>()
-    checkExample(cache)
+    checkExample(mutableMapOf())
     val lines = readAllLines(2020, 19)
 
     val rules = mutableMapOf<Int, List<List<Any>>>()
     var parsingRules = true
-    val possible = mutableSetOf<String>()
-    var count = 0
+
     val toCheck = mutableListOf<String>()
     for (line in lines) {
         if (line.isEmpty()) {
             parsingRules = false
-            possible.addAll(expand(0, rules, cache, setOf()))
+
         } else if (parsingRules) {
             val parts = line.split(":")
             val ruleId = parts[0].toInt()
@@ -69,49 +65,35 @@ fun main() {
             rules[ruleId] = choices
         } else {
             toCheck.add(line)
-            if (line in possible) {
-                count++
-            }
         }
     }
-    println("Part1: $count")
-
-    //
 
     val toCheckFor = mutableSetOf<String>()
     for (line in toCheck) {
-        for (i in 0 until line.length) {
+        for (i in line.indices) {
             for (j in (i + 1) until line.length + 1) {
                 toCheckFor.add(line.substring(i, j))
             }
         }
     }
-    println(toCheck.filter { it in toCheckFor }.size)
 
-    //println("8: ${expand(8, rules, cache)}")
-    //println("11: ${expand(11, rules, cache)}")
+    val possible = expand(0, rules, mutableMapOf(), toCheckFor).toSet()
+    println("Part1: ${toCheck.filter { it in possible }.size}")
 
-    cache.clear()
     rules[8] = listOf(
         listOf(42),
         listOf(42, 42),
         listOf(42, 42, 42),
         listOf(42, 42, 42, 42),
         listOf(42, 42, 42, 42, 42),
-        listOf(42, 42, 42, 42, 42, 42),
-        listOf(42, 42, 42, 42, 42, 42, 42),
-        listOf(42, 42, 42, 42, 42, 42, 42, 42),
-
     )
     rules[11] = listOf(
         listOf(42, 31),
         listOf(42, 42, 31, 31),
         listOf(42, 42, 42, 31, 31, 31),
         listOf(42, 42, 42, 42, 31, 31, 31, 31),
-        listOf(42, 42, 42, 42, 42, 31, 31, 31, 31, 31),
-        listOf(42, 42, 42, 42, 42, 42, 31, 31, 31, 31, 31, 31),
     )
-    val possibles2 = expand(0, rules, cache, toCheckFor)
+    val possibles2 = expand(0, rules, mutableMapOf(), toCheckFor)
     println("Part2: ${toCheck.filter { it in possibles2 }.count()}")
 }
 
