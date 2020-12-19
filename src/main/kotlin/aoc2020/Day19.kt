@@ -51,20 +51,23 @@ fun main() {
 
     val toCheck = mutableListOf<String>()
     for (line in lines) {
-        if (line.isEmpty()) {
-            parsingRules = false
-
-        } else if (parsingRules) {
-            val parts = line.split(":")
-            val ruleId = parts[0].toInt()
-            val choices = parts[1].split("|").map { c ->
-                c.split(" ").filter { it.isNotEmpty() }.map {
-                    it.toIntOrNull() ?: it.subSequence(1, it.length - 1)
+        when {
+            line.isEmpty() -> {
+                parsingRules = false
+            }
+            parsingRules -> {
+                val parts = line.split(":")
+                val ruleId = parts[0].toInt()
+                val choices = parts[1].split("|").map { c ->
+                    c.split(" ").filter { it.isNotEmpty() }.map {
+                        it.toIntOrNull() ?: it.subSequence(1, it.length - 1)
+                    }.toList()
                 }.toList()
-            }.toList()
-            rules[ruleId] = choices
-        } else {
-            toCheck.add(line)
+                rules[ruleId] = choices
+            }
+            else -> {
+                toCheck.add(line)
+            }
         }
     }
 
