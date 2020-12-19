@@ -10,8 +10,8 @@ class Parser(val plus: Int, val mul: Int) {
         return when (sym) {
             '+' -> plus
             '*' -> mul
-            '(', ')', '#' -> 1
-            else -> throw RuntimeException("Unknown")
+            '(',')' -> 1
+            else -> throw RuntimeException("Unknown $sym")
         }
     }
 
@@ -21,41 +21,34 @@ class Parser(val plus: Int, val mul: Int) {
 
     private fun toPostfix(infix: String): List<Char> {
         val stack = ArrayDeque<Char>()
-        stack.addLast('#')
         val postFix = mutableListOf<Char>()
         for (i in infix.indices) {
             val sym = infix[i]
-            when {
-                isOperator(sym) -> {
-                    when (sym) {
-                        '(' -> stack.addLast(sym)
-                        ')' -> {
-                            while (stack.last() != '(') {
+            if (isOperator(sym)) {
+                when (sym) {
+                    '(' -> stack.addLast(sym)
+                    ')' -> {
+                        while (stack.last() != '(') {
+                            postFix.add(stack.removeLast())
+                        }
+                        stack.removeLast()
+                    }
+                    else -> {
+                        if (stack.isEmpty() || precedence(sym) > precedence(stack.last())) {
+                            stack.addLast(sym)
+                        } else {
+                            while (stack.isNotEmpty() && precedence(sym) <= precedence(stack.last())) {
                                 postFix.add(stack.removeLast())
                             }
-                            stack.removeLast()
-                        }
-                        else -> {
-                            if (precedence(sym) > precedence(stack.last())) {
-                                stack.addLast(sym)
-                            } else {
-                                while (precedence(sym) <= precedence(stack.last())) {
-                                    postFix.add(stack.removeLast())
-                                }
-                                stack.addLast(sym)
-                            }
+                            stack.addLast(sym)
                         }
                     }
                 }
-                sym != ' ' -> {
-                    postFix.add(sym)
-                }
-                else -> {
-                    //println("Unknown: '$sym'")
-                }
+            } else if (sym != ' ') {
+                postFix.add(sym)
             }
         }
-        while (stack.last() != '#') {
+        while (stack.isNotEmpty()) {
             postFix.add(stack.removeLast())
         }
         return postFix

@@ -52,4 +52,15 @@ internal class UtilsTest {
         assertEquals(158, crt(listOf(3L, 2L, 4L), listOf(5L, 6L, 7L)))
     }
 
+    @Test
+    fun checkTokenRegEx() {
+        val input = "12*6*(8 + 8 * 4 + 3 + 6) + (4 + 3 * 7 + 7 + 4 + 2) + 7 + (3 + (2 * 8 + 7 + 7) * 7 + 5 * (3 * 2 + 9 + 2 + 8 + 7) * (4 + 2 + 8))"
+
+        val tokenRegex = """-?[0-9.]+|\+|\*|\(|\)""".toRegex()
+        val tokens = tokenRegex.findAll(input).map { it.groupValues[0] }.toList()
+        println("Tokens: $tokens")
+
+
+    }
+
 }
