@@ -38,11 +38,10 @@ private fun scanTiles(lines: List<String>) : List<Tile> {
     return result
 }
 
-
 fun main() {
     val lines = readAllLines(2020,20)
     val tiles = scanTiles(lines)
-    println(tiles.map { it.id })
+    println("numTiles = ${tiles.count()}, vals= ${tiles.map { it.id }}")
     val tileMatches = mutableMapOf<Int, MutableList<Int>>()
     for (t1 in tiles.indices) {
         val t1Edges = tiles[t1].edges().toSet()
@@ -60,5 +59,18 @@ fun main() {
             }
         }
     }
-    println(tileMatches.filter { it.value.size < 3 }.map { it.key }.fold(1L){acc, i -> acc*i })
+    val corners = tileMatches.filter { it.value.size < 3 }.map { it.key }
+    println(corners)
+    println("Part 1: ${corners.fold(1L){acc, i -> acc*i }}")
+
+    val fullPictureIdxs = mutableListOf(*((1..12).map { MutableList(12){0}}.toTypedArray()))
+
+    fullPictureIdxs[0][0] = corners[0]
+    for (r in 1 until 12) {
+        val prior = fullPictureIdxs[0][r-1]
+        println(prior)
+    }
+    println(tileMatches[corners[0]])
+
+
 }
