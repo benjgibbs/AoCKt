@@ -2,7 +2,7 @@ package aoc2020
 
 import utils.readAllLines
 
-fun expand(
+private fun expand(
     id: Int,
     rules: Map<Int, List<List<Any>>>,
     cache: MutableMap<Int, List<String>>,
