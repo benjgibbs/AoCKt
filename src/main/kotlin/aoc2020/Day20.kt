@@ -2,6 +2,7 @@ package aoc2020
 
 import utils.ints
 import utils.readAllLines
+import java.lang.StringBuilder
 
 data class Tile(val id: Int, val grid: List<String>) {
     fun edges() : List<String> {
@@ -18,6 +19,15 @@ data class Tile(val id: Int, val grid: List<String>) {
             col2,
             col2.reversed()
         )
+    }
+
+    override fun toString(): String {
+        val build = StringBuilder()
+        for (c in grid) {
+            if (build.length > 0) build.append("\n")
+            build.append(c)
+        }
+        return build.toString()
     }
 }
 
@@ -41,7 +51,7 @@ private fun scanTiles(lines: List<String>) : List<Tile> {
 fun main() {
     val lines = readAllLines(2020,20)
     val tiles = scanTiles(lines)
-    println("numTiles = ${tiles.count()}, vals= ${tiles.map { it.id }}")
+    //println("numTiles = ${tiles.count()}, vals= ${tiles.map { it.id }}")
     val tileMatches = mutableMapOf<Int, MutableList<Int>>()
     for (t1 in tiles.indices) {
         val t1Edges = tiles[t1].edges().toSet()
@@ -66,11 +76,51 @@ fun main() {
     val fullPictureIdxs = mutableListOf(*((1..12).map { MutableList(12){0}}.toTypedArray()))
 
     fullPictureIdxs[0][0] = corners[0]
+    val added = mutableSetOf(corners[0])
+    //first row
     for (r in 1 until 12) {
         val prior = fullPictureIdxs[0][r-1]
-        println(prior)
+        val possibles = tileMatches[prior]!!
+            .filter {it !in added}
+            .map { Pair(it, tileMatches[it]!!.size) }
+            .sortedBy { it.second }
+
+        //println(possibles)
+        fullPictureIdxs[0][r] = possibles[0].first
+        added.add(possibles[0].first)
     }
-    println(tileMatches[corners[0]])
+    for (c in 1 until 12) {
+        for (r in 0 until 12) {
+            val prior = fullPictureIdxs[c-1][r]
+            val possibles = tileMatches[prior]!!
+                .filter {it !in added}
+                .map { Pair(it, tileMatches[it]!!.size) }
+                .sortedBy { it.second }
+            fullPictureIdxs[c][r] = possibles[0].first
+            added.add(possibles[0].first)
+        }
+    }
+
+    println("tiles.size=${tiles.size}, added.size=${added.size}")
+    println("Corn")
+    for (c in fullPictureIdxs) {
+        println(c.joinToString(","))
+    }
+
+    println(tiles.find{ it.id == fullPictureIdxs[0][0]})
+
+    println()
+
+    println(tiles.find{ it.id == fullPictureIdxs[0][1]})
 
 
+
+}
+
+fun mirror(input: List<String>) : List<String> {
+    return input
+
+    }
+
+    for ()
 }
