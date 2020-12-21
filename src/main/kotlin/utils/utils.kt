@@ -7,8 +7,8 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
 
-fun readAllLines(year: Int, day:Int) : List<String> {
-    var path = Paths.get("src/main/resources/aoc$year/Day$day.txt")
+fun readAllLines(year: Int, day:Int, postfix: String ="") : List<String> {
+    var path = Paths.get("src/main/resources/aoc$year/Day$day$postfix.txt")
 
     if (!Files.exists(path)) {
         val url = URL("https", "adventofcode.com", "/$year/day/$day/input")

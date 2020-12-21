@@ -2,7 +2,7 @@ package aoc2020
 
 import utils.ints
 import utils.readAllLines
-import java.lang.StringBuilder
+import kotlin.math.sqrt
 
 data class Tile(val id: Int, val grid: List<String>) {
     fun edges(): List<String> {
@@ -31,35 +31,15 @@ data class Tile(val id: Int, val grid: List<String>) {
     }
 
     fun flipVertically(): Tile {
-        return Tile(id, grid.map { line ->
-            line.reversed()
-        })
+        return Tile(id, flipVertically(grid))
     }
 
     fun flipHorizontally(): Tile {
-        val newGrid = MutableList<String>(grid.size) { "" }
-        for (g in grid.indices) {
-            newGrid[grid.size - 1 - g] = grid[g]
-        }
-        return Tile(id, newGrid)
+        return Tile(id, flipHorizontally(grid))
     }
 
     fun rotate(): Tile {
-        val newGrid = grid.indices.map { MutableList(grid.size) { '.' } }.toList()
-        for (r in grid.indices) {
-            for (c in grid.indices) {
-                newGrid[c][grid.size - 1 - r] = grid[r][c]
-            }
-        }
-        return Tile(id, newGrid.map { it.joinToString("") })
-    }
-
-    fun topEdge(): String {
-        return grid.first()
-    }
-
-    fun bottomEdge(): String {
-        return grid.last()
+        return Tile(id, rotate(grid))
     }
 
     fun leftEdge(): String {
@@ -68,6 +48,14 @@ data class Tile(val id: Int, val grid: List<String>) {
 
     fun rightEdge(): String {
         return grid.map { it.last() }.joinToString("")
+    }
+
+    fun topEdge(): String {
+        return grid.first()
+    }
+
+    fun bottomEdge(): String {
+        return grid.last()
     }
 }
 
@@ -96,7 +84,6 @@ fun main() {
     val lines = readAllLines(2020, 20)
     val tiles = scanTiles(lines)
     val tilesById = tiles.map { Pair(it.id, it) }.toMap()
-    //println("numTiles = ${tiles.count()}, vals= ${tiles.map { it.id }}")
     val tileMatches = mutableMapOf<Int, MutableList<Int>>()
     for (t1 in tiles.indices) {
         val t1Edges = tiles[t1].edges().toSet()
@@ -118,24 +105,25 @@ fun main() {
     println(corners)
     println("Part 1: ${corners.fold(1L) { acc, i -> acc * i }}")
 
-    val fullPictureIdxs = mutableListOf(*((1..12).map { MutableList(12) { 0 } }.toTypedArray()))
+    val size = sqrt(tiles.size.toDouble()).toInt()
+
+    val fullPictureIdxs = mutableListOf(*((1..size).map { MutableList(size) { 0 } }.toTypedArray()))
 
     fullPictureIdxs[0][0] = corners[0]
     val added = mutableSetOf(corners[0])
     //first row
-    for (r in 1 until 12) {
+    for (r in 1 until size) {
         val prior = fullPictureIdxs[0][r - 1]
         val possibles = tileMatches[prior]!!
             .filter { it !in added }
             .map { Pair(it, tileMatches[it]!!.size) }
             .sortedBy { it.second }
 
-        //println(possibles)
         fullPictureIdxs[0][r] = possibles[0].first
         added.add(possibles[0].first)
     }
-    for (c in 1 until 12) {
-        for (r in 0 until 12) {
+    for (c in 1 until size) {
+        for (r in 0 until size) {
             val prior = fullPictureIdxs[c - 1][r]
             val possibles = tileMatches[prior]!!
                 .filter { it !in added }
@@ -145,33 +133,36 @@ fun main() {
             added.add(possibles[0].first)
         }
     }
-
-    println("tiles.size=${tiles.size}, added.size=${added.size}")
-    println("Corn")
-    for (c in fullPictureIdxs) {
-        println(c.joinToString(","))
-    }
-
-
-    val rotatedTiles: List<MutableList<Tile>> = (1..12).map { MutableList(12) { Tile(-1, listOf()) } }
+    val rotatedTiles: List<MutableList<Tile>> = (1..size).map { MutableList(size) { Tile(-1, listOf()) } }
 
     for (r in rotatedTiles.indices) {
         for (c in rotatedTiles.indices) {
             if (c == 0) {
-                val t0 = tiles.find { it.id == fullPictureIdxs[r][c] }!!
-                val t1 = tiles.find { it.id == fullPictureIdxs[r][c + 1] }!!
+                if (r == 0) {
+                    val t0 = tilesById[fullPictureIdxs[r][c]]!!
+                    val t1 = tilesById[fullPictureIdxs[r][c + 1]]!!
 
-                for (tt0 in allPerms(t0)) {
+                    for (tt0 in allPerms(t0)) {
+                        for (tt1 in allPerms(t1)) {
+                            if (tt0.rightEdge() == tt1.leftEdge()) {
+                                rotatedTiles[r][c] = tt0
+                            }
+                        }
+                    }
+                } else {
+                    val t0 = rotatedTiles[r - 1][c]
+                    val t1 = tilesById[fullPictureIdxs[r][c]]!!
+
                     for (tt1 in allPerms(t1)) {
-                        if (tt0.rightEdge() == tt1.leftEdge()) {
-                            rotatedTiles[r][c] = tt0
+                        if (t0.bottomEdge() == tt1.topEdge()) {
+                            rotatedTiles[r][c] = tt1
                         }
                     }
                 }
 
             } else {
                 val t0 = rotatedTiles[r][c - 1]
-                val t1 = tiles.find { it.id == fullPictureIdxs[r][c] }!!
+                val t1 = tilesById[fullPictureIdxs[r][c]]!!
 
                 for (tt1 in allPerms(t1)) {
                     if (t0.rightEdge() == tt1.leftEdge()) {
@@ -181,40 +172,54 @@ fun main() {
             }
         }
     }
-    println("---")
-    println(rotatedTiles.map { it.map { it.id }.joinToString(",") }.joinToString("\n"))
-    println("---")
-    println()
-
 
     val image = mutableListOf<String>()
-    for (r in 0 until 120) {
+    for (r in 0 until size * 10) {
         if (r % 10 == 0 || r % 10 == 9) {
             continue
         }
         val buffer = StringBuilder()
-        for (c in 0 until 12) {
+        for (c in 0 until size) {
             buffer.append(rotatedTiles[r / 10][c].grid[r % 10].substring(1, 9))
         }
         image.add(buffer.toString())
     }
 
-    println(image[0].length)
-    println(image.size)
+    val perms = allPerms(image).map { perm -> Pair(countNessies(perm), perm) }.toList()
 
+    val mostNessies = perms.maxByOrNull { it.first }!!.second
 
+    println("Part2: ${countRoughSeas(mostNessies)}")
+}
+
+fun flipVertically(grid: List<String>): List<String> {
+    return grid.map { line ->
+        line.reversed()
+    }
+}
+
+fun flipHorizontally(grid: List<String>): List<String> {
+    val newGrid = MutableList(grid.size) { "" }
+    for (g in grid.indices) {
+        newGrid[grid.size - 1 - g] = grid[g]
+    }
+    return newGrid
+}
+
+fun rotate(grid: List<String>): List<String> {
+    val newGrid = grid.indices.map { MutableList(grid.size) { '.' } }.toList()
+    for (r in grid.indices) {
+        for (c in grid.indices) {
+            newGrid[c][grid.size - 1 - r] = grid[r][c]
+        }
+    }
+    return newGrid.map { it.joinToString("") }
+}
+
+fun countRoughSeas(image: List<String>): Int {
     val hashes = image.fold(0) { acc, line -> acc + line.count { it == '#' } }
     val nessies = countNessies(image)
-
-    //1749 too high
-    println("Part2: ${hashes - nessies * 15}")
-
-
-    val hashes2 = demoGrid.fold(0) { acc, line -> acc + line.count { it == '#' } }
-    val nessies2 = countNessies(demoGrid)
-
-    println(hashes2 - nessies2 * 15)
-
+    return hashes - 15 * nessies
 }
 
 fun countNessies(image: List<String>): Int {
@@ -224,26 +229,18 @@ fun countNessies(image: List<String>): Int {
       2  #  #  #  #  #  #
         012345678901234567890
      */
+
+    val offsets = mutableListOf(
+        Pair(0, 18),
+        Pair(1, 0), Pair(1, 5), Pair(1, 6), Pair(1, 11), Pair(1, 12), Pair(1, 17), Pair(1, 18), Pair(1, 19),
+        Pair(2, 1), Pair(2, 4), Pair(2, 7), Pair(2, 10), Pair(2, 13), Pair(2, 16),
+    )
+
     var count = 0
     for (r in 0 until image.size - 3) {
         for (c in 0 until image[r].length - 19) {
-            if (
-                image[r][c + 18] == '#'
-                && image[r + 1][c] == '#'
-                && image[r + 1][c + 5] == '#'
-                && image[r + 1][c + 6] == '#'
-                && image[r + 1][c + 11] == '#'
-                && image[r + 1][c + 12] == '#'
-                && image[r + 1][c + 17] == '#'
-                && image[r + 1][c + 18] == '#'
-                && image[r + 1][c + 19] == '#'
-                && image[r + 2][c + 1] == '#'
-                && image[r + 2][c + 4] == '#'
-                && image[r + 2][c + 7] == '#'
-                && image[r + 2][c + 10] == '#'
-                && image[r + 2][c + 13] == '#'
-                && image[r + 2][c + 16] == '#'
-            ) {
+            val points = offsets.map { Pair(it.first + r, it.second + c) }
+            if (points.map { image[it.first][it.second] }.count { it == '#' } == offsets.size) {
                 count++
             }
         }
@@ -266,32 +263,20 @@ fun allPerms(t: Tile): List<Tile> {
     return result
 }
 
-val demoGrid = listOf(
-    ".####...#####..#...###..",
-    "#####..#..#.#.####..#.#.",
-    ".#.#...#.###...#.##.##..",
-    "#.#.##.###.#.##.##.#####",
-    "..##.###.####..#.####.##",
-    "...#.#..##.##...#..#..##",
-    "#.##.#..#.#..#..##.#.#..",
-    ".###.##.....#...###.#...",
-    "#.####.#.#....##.#..#.#.",
-    "##...#..#....#..#...####",
-    "..#.##...###..#.#####..#",
-    "....#.##.#.#####....#...",
-    "..##.##.###.....#.##..#.",
-    "#...#...###..####....##.",
-    ".#.##...#.##.#.#.###...#",
-    "#.###.#..####...##..#...",
-    "#.###...#.##...#.######.",
-    ".###.###.#######..#####.",
-    "..##.#..#..#.#######.###",
-    "#.#..##.########..#..##.",
-    "#.#####..#.#...##..#....",
-    "#....##..#.#########..##",
-    "#...#.....#..##...###.##",
-    "#..###....##.#...##.##.#"
-)
+fun allPerms(grid: List<String>): List<List<String>> {
+    val result = mutableListOf<List<String>>()
+    result.add(grid)
+    result.add(rotate(grid))
+    result.add(rotate(rotate(grid)))
+    result.add(rotate(rotate(rotate(grid))))
+    result.add(flipVertically(grid))
+    result.add(rotate(flipVertically(grid)))
+    result.add(rotate(rotate(flipVertically(grid))))
+    result.add(flipHorizontally(grid))
+    result.add(rotate(flipHorizontally(grid)))
+    result.add(rotate(rotate(flipHorizontally(grid))))
+    return result
+}
 
 
 
