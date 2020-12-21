@@ -120,7 +120,4 @@ fun main() {
 fun mirror(input: List<String>) : List<String> {
     return input
 
-    }
-
-    for ()
 }
