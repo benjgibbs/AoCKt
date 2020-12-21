@@ -6,18 +6,12 @@ import kotlin.math.sqrt
 
 data class Tile(val id: Int, val grid: List<String>) {
     fun edges(): List<String> {
-        val col1 = grid.map { it[0] }.joinToString("")
-        val col2 = grid.map { it[it.length - 1] }.joinToString("")
+        val firstCol = grid.map { it.first() }.joinToString("")
+        val lastCol = grid.map { it.last() }.joinToString("")
 
         return listOf(
-            grid[0],
-            grid[0].reversed(),
-            grid[grid.size - 1],
-            grid[grid.size - 1].reversed(),
-            col1,
-            col1.reversed(),
-            col2,
-            col2.reversed()
+            grid.first(), grid.first().reversed(), grid.last(), grid.last().reversed(),
+            firstCol, firstCol.reversed(), lastCol, lastCol.reversed()
         )
     }
 
@@ -85,31 +79,27 @@ fun main() {
     val tiles = scanTiles(lines)
     val tilesById = tiles.map { Pair(it.id, it) }.toMap()
     val tileMatches = mutableMapOf<Int, MutableList<Int>>()
-    for (t1 in tiles.indices) {
-        val t1Edges = tiles[t1].edges().toSet()
-        for (t2 in t1 + 1 until tiles.size) {
-            val t2Edges = tiles[t2].edges().toSet()
-            if (t1Edges.intersect(t2Edges).isNotEmpty()) {
-                if (tiles[t1].id !in tileMatches) {
-                    tileMatches[tiles[t1].id] = mutableListOf()
-                }
-                if (tiles[t2].id !in tileMatches) {
-                    tileMatches[tiles[t2].id] = mutableListOf()
-                }
-                tileMatches[tiles[t1].id]!!.add(tiles[t2].id)
-                tileMatches[tiles[t2].id]!!.add(tiles[t1].id)
-            }
-        }
-    }
-    val corners = tileMatches.filter { it.value.size < 3 }.map { it.key }
-    println(corners)
+    val corners = findCorners(tiles, tileMatches)
     println("Part 1: ${corners.fold(1L) { acc, i -> acc * i }}")
 
     val size = sqrt(tiles.size.toDouble()).toInt()
+    val fullPictureIdxs = locateTiles(size, corners, tileMatches)
+    val rotatedTiles = assembleTiles(size, tilesById, fullPictureIdxs)
+    val image = removeBorders(size, rotatedTiles)
+    val perms = allPerms(image).map { perm -> Pair(countNessies(perm), perm) }
+    val mostNessies = perms.maxByOrNull { it.first }!!.second
 
+    println("Part2: ${countRoughSeas(mostNessies)}")
+}
+
+private fun locateTiles(
+    size: Int,
+    corners: List<Int>,
+    tileMatches: MutableMap<Int, MutableList<Int>>
+): MutableList<MutableList<Int>> {
     val fullPictureIdxs = mutableListOf(*((1..size).map { MutableList(size) { 0 } }.toTypedArray()))
-
     fullPictureIdxs[0][0] = corners[0]
+
     val added = mutableSetOf(corners[0])
     //first row
     for (r in 1 until size) {
@@ -133,46 +123,13 @@ fun main() {
             added.add(possibles[0].first)
         }
     }
-    val rotatedTiles: List<MutableList<Tile>> = (1..size).map { MutableList(size) { Tile(-1, listOf()) } }
+    return fullPictureIdxs
+}
 
-    for (r in rotatedTiles.indices) {
-        for (c in rotatedTiles.indices) {
-            if (c == 0) {
-                if (r == 0) {
-                    val t0 = tilesById[fullPictureIdxs[r][c]]!!
-                    val t1 = tilesById[fullPictureIdxs[r][c + 1]]!!
-
-                    for (tt0 in allPerms(t0)) {
-                        for (tt1 in allPerms(t1)) {
-                            if (tt0.rightEdge() == tt1.leftEdge()) {
-                                rotatedTiles[r][c] = tt0
-                            }
-                        }
-                    }
-                } else {
-                    val t0 = rotatedTiles[r - 1][c]
-                    val t1 = tilesById[fullPictureIdxs[r][c]]!!
-
-                    for (tt1 in allPerms(t1)) {
-                        if (t0.bottomEdge() == tt1.topEdge()) {
-                            rotatedTiles[r][c] = tt1
-                        }
-                    }
-                }
-
-            } else {
-                val t0 = rotatedTiles[r][c - 1]
-                val t1 = tilesById[fullPictureIdxs[r][c]]!!
-
-                for (tt1 in allPerms(t1)) {
-                    if (t0.rightEdge() == tt1.leftEdge()) {
-                        rotatedTiles[r][c] = tt1
-                    }
-                }
-            }
-        }
-    }
-
+private fun removeBorders(
+    size: Int,
+    rotatedTiles: List<MutableList<Tile>>
+): MutableList<String> {
     val image = mutableListOf<String>()
     for (r in 0 until size * 10) {
         if (r % 10 == 0 || r % 10 == 9) {
@@ -184,12 +141,81 @@ fun main() {
         }
         image.add(buffer.toString())
     }
+    return image
+}
 
-    val perms = allPerms(image).map { perm -> Pair(countNessies(perm), perm) }.toList()
+private fun assembleTiles(
+    size: Int,
+    tilesById: Map<Int, Tile>,
+    fullPictureIdxs: MutableList<MutableList<Int>>
+): List<MutableList<Tile>> {
+    val rotatedTiles: List<MutableList<Tile>> = (1..size).map { MutableList(size) { Tile(-1, listOf()) } }
 
-    val mostNessies = perms.maxByOrNull { it.first }!!.second
+    for (r in rotatedTiles.indices) {
+        for (c in rotatedTiles.indices) {
+            if (c == 0) {
+                if (r == 0) {
+                    // Constrain to left tile
+                    val t0 = tilesById[fullPictureIdxs[r][c]]!!
+                    val t1 = tilesById[fullPictureIdxs[r][c + 1]]!!
 
-    println("Part2: ${countRoughSeas(mostNessies)}")
+                    for (tt0 in allPerms(t0)) {
+                        for (tt1 in allPerms(t1)) {
+                            if (tt0.rightEdge() == tt1.leftEdge()) {
+                                rotatedTiles[r][c] = tt0
+                            }
+                        }
+                    }
+                } else {
+                    // Constrain to tile above
+                    val t0 = rotatedTiles[r - 1][c]
+                    val t1 = tilesById[fullPictureIdxs[r][c]]!!
+
+                    for (tt1 in allPerms(t1)) {
+                        if (t0.bottomEdge() == tt1.topEdge()) {
+                            rotatedTiles[r][c] = tt1
+                        }
+                    }
+                }
+
+            } else {
+                // Constrain to left tile
+                val t0 = rotatedTiles[r][c - 1]
+                val t1 = tilesById[fullPictureIdxs[r][c]]!!
+
+                for (tt1 in allPerms(t1)) {
+                    if (t0.rightEdge() == tt1.leftEdge()) {
+                        rotatedTiles[r][c] = tt1
+                    }
+                }
+            }
+        }
+    }
+    return rotatedTiles
+}
+
+private fun findCorners(
+    tiles: List<Tile>,
+    tileMatches: MutableMap<Int, MutableList<Int>>
+): List<Int> {
+    for (t1 in tiles.indices) {
+        val t1Edges = tiles[t1].edges().toSet()
+        for (t2 in t1 + 1 until tiles.size) {
+            val t2Edges = tiles[t2].edges().toSet()
+            if (t1Edges.intersect(t2Edges).isNotEmpty()) {
+                if (tiles[t1].id !in tileMatches) {
+                    tileMatches[tiles[t1].id] = mutableListOf()
+                }
+                if (tiles[t2].id !in tileMatches) {
+                    tileMatches[tiles[t2].id] = mutableListOf()
+                }
+                tileMatches[tiles[t1].id]!!.add(tiles[t2].id)
+                tileMatches[tiles[t2].id]!!.add(tiles[t1].id)
+            }
+        }
+    }
+    val corners = tileMatches.filter { it.value.size < 3 }.map { it.key }
+    return corners
 }
 
 fun flipVertically(grid: List<String>): List<String> {
@@ -219,7 +245,7 @@ fun rotate(grid: List<String>): List<String> {
 fun countRoughSeas(image: List<String>): Int {
     val hashes = image.fold(0) { acc, line -> acc + line.count { it == '#' } }
     val nessies = countNessies(image)
-    return hashes - 15 * nessies
+    return hashes - nessies
 }
 
 fun countNessies(image: List<String>): Int {
@@ -245,7 +271,7 @@ fun countNessies(image: List<String>): Int {
             }
         }
     }
-    return count
+    return count * offsets.size
 }
 
 fun allPerms(t: Tile): List<Tile> {
@@ -256,10 +282,8 @@ fun allPerms(t: Tile): List<Tile> {
     result.add(t.rotate().rotate().rotate())
     result.add(t.flipVertically())
     result.add(t.flipVertically().rotate())
-    result.add(t.flipVertically().rotate().rotate())
     result.add(t.flipHorizontally())
     result.add(t.flipHorizontally().rotate())
-    result.add(t.flipHorizontally().rotate().rotate())
     return result
 }
 
@@ -271,10 +295,8 @@ fun allPerms(grid: List<String>): List<List<String>> {
     result.add(rotate(rotate(rotate(grid))))
     result.add(flipVertically(grid))
     result.add(rotate(flipVertically(grid)))
-    result.add(rotate(rotate(flipVertically(grid))))
     result.add(flipHorizontally(grid))
     result.add(rotate(flipHorizontally(grid)))
-    result.add(rotate(rotate(flipHorizontally(grid))))
     return result
 }
 
