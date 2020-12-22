@@ -107,8 +107,7 @@ private fun getPlayers(): Pair<ArrayDeque<Int>, ArrayDeque<Int>> {
             player++
         } else {
             val int = line.toInt()
-            if (player == 1
-            ) {
+            if (player == 1) {
                 player1.addLast(int)
             } else {
                 player2.addLast(int)
