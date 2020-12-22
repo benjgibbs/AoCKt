@@ -1,8 +1,8 @@
 package aoc2020
 
+import utils.ints
 import utils.readAllLines
 import java.lang.IllegalStateException
-
 
 fun main() {
     part1()
@@ -11,30 +11,18 @@ fun main() {
 
 private fun part2() {
     val (p1, p2) = getPlayers()
-
-    val winner = playGame(p1,p2)
-    val score = if (winner == 1) {
-        calcScore(p1)
-    } else {
-        calcScore(p2)
-    }
+    val winner = playGame(p1, p2)
+    val score = calcScore(if (winner == 1) p1 else p2)
     println("Part2: $score")
 }
 
-
-private fun playGame(p1: ArrayDeque<Int>, p2: ArrayDeque<Int>) : Int {
-    val previousHands = mutableSetOf<List<Int>>()
-    previousHands.add(p1.toList())
-    previousHands.add(p2.toList())
+private fun playGame(p1: ArrayDeque<Int>, p2: ArrayDeque<Int>): Int {
+    val previousHands = mutableSetOf(p1.toList(), p2.toList())
     while (p1.isNotEmpty() && p2.isNotEmpty()) {
         val c1 = p1.removeFirst()
-        val c2= p2.removeFirst()
-        if (p1.size >= c1 && p2.size >= c2){
-            val pp1 = ArrayDeque<Int>()
-            pp1.addAll(p1.subList(0,c1))
-            val pp2 = ArrayDeque<Int>()
-            pp2.addAll(p2.subList(0,c2))
-            val winner = playGame(pp1, pp2)
+        val c2 = p2.removeFirst()
+        if (p1.size >= c1 && p2.size >= c2) {
+            val winner = playGame(copy(p1, c1), copy(p2, c2))
             if (winner == 1) {
                 p1.addLast(c1)
                 p1.addLast(c2)
@@ -43,15 +31,7 @@ private fun playGame(p1: ArrayDeque<Int>, p2: ArrayDeque<Int>) : Int {
                 p2.addLast(c1)
             }
         } else {
-            if (c1 > c2) {
-                p1.addLast(c1)
-                p1.addLast(c2)
-            } else if (c2 > c1) {
-                p2.addLast(c2)
-                p2.addLast(c1)
-            } else {
-                throw IllegalStateException()
-            }
+            adjustForWin(c1, c2, p1, p2)
         }
         val p1l = p1.toList()
         val p2l = p2.toList()
@@ -70,52 +50,65 @@ private fun playGame(p1: ArrayDeque<Int>, p2: ArrayDeque<Int>) : Int {
     throw IllegalStateException()
 }
 
+private fun copy(
+    p1: ArrayDeque<Int>,
+    count: Int
+): ArrayDeque<Int> {
+    val pp1 = ArrayDeque<Int>()
+    pp1.addAll(p1.subList(0, count))
+    return pp1
+}
+
 private fun part1() {
     val (p1, p2) = getPlayers()
-
     while (p1.isNotEmpty() && p2.isNotEmpty()) {
-        playRound(p1, p2)
+        val c1 = p1.removeFirst()
+        val c2 = p2.removeFirst()
+        adjustForWin(c1, c2, p1, p2)
     }
-    val score = if (p1.isNotEmpty()) {
-        calcScore(p1)
-    } else {
-        calcScore(p2)
-    }
+    val score = calcScore(if (p1.isNotEmpty()) p1 else p2)
     println("Part1: $score")
 }
 
-fun calcScore(d: ArrayDeque<Int>) : Long {
-    return d.foldRightIndexed(0L) { index, i, acc -> acc + (i * (d.size - index))}
+private fun calcScore(d: ArrayDeque<Int>): Long {
+    return d.foldIndexed(0L) { index, acc, i -> acc + (i * (d.size - index)) }
 }
 
-fun playRound(p1: ArrayDeque<Int>, p2: ArrayDeque<Int>) {
-    val c1 = p1.removeFirst()
-    val c2 = p2.removeFirst()
-
-    if (c1 > c2) {
-        p1.addLast(c1)
-        p1.addLast(c2)
-    } else if (c2 > c1) {
-        p2.addLast(c2)
-        p2.addLast(c1)
-    } else {
-        throw IllegalStateException()
+private fun adjustForWin(
+    c1: Int,
+    c2: Int,
+    p1: ArrayDeque<Int>,
+    p2: ArrayDeque<Int>
+) {
+    when {
+        c1 > c2 -> {
+            p1.addLast(c1)
+            p1.addLast(c2)
+        }
+        c2 > c1 -> {
+            p2.addLast(c2)
+            p2.addLast(c1)
+        }
+        else -> {
+            throw IllegalStateException()
+        }
     }
 }
 
-fun getPlayers() : Pair<ArrayDeque<Int>, ArrayDeque<Int>> {
+private fun getPlayers(): Pair<ArrayDeque<Int>, ArrayDeque<Int>> {
     val player1 = ArrayDeque<Int>()
     val player2 = ArrayDeque<Int>()
-    var part = 0
-    val input = readAllLines(2020,22)
+    var player = 0
+    val input = readAllLines(2020, 22)
     for (line in input) {
-        if (line.startsWith("Player")){
-
+        if (line.startsWith("Player")) {
+            player = ints(line)[0]
         } else if (line.isBlank()) {
-            part++
+            player++
         } else {
             val int = line.toInt()
-            if (part == 0){
+            if (player == 1
+            ) {
                 player1.addLast(int)
             } else {
                 player2.addLast(int)
